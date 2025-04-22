@@ -7,7 +7,7 @@ from typing import List
 import uuid
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 # ✅ 모델 & 토크나이저 로드 (FastAPI 실행 시 1회만 수행)
@@ -39,7 +39,7 @@ class ArticleInput(BaseModel):
     category: str = ""
     author: str = ""
     custom_id: str = None
-    publication_date: datetime = Field(default_factory=datetime.now)
+    publication_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) # 기본값을 UTC 현재 시간으로 설정
 
 class InferenceRequest(BaseModel):
     articles: List[ArticleInput]
@@ -76,7 +76,7 @@ def predict_and_store(request: InferenceRequest):
             "category": article.category,
             "author": article.author,
             "custom_id": str(article_id),  # 문자열로 저장
-            "publication_date": article.publication_date
+            "publication_date": article.publication_date.timestamp()  # Unix 타임스탬프로 저장
         })
 
     embeddings = [] # 임베딩을 저장할 리스트
