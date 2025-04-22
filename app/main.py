@@ -2,11 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 import uuid
-from qdrant_client import QdrantClient, models
+from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct
+from datetime import datetime
 import os
 
 # ✅ 모델 & 토크나이저 로드 (FastAPI 실행 시 1회만 수행)
@@ -38,6 +39,7 @@ class ArticleInput(BaseModel):
     category: str = ""
     author: str = ""
     custom_id: str = None
+    publication_date: datetime = Field(default_factory=datetime.now)
 
 class InferenceRequest(BaseModel):
     articles: List[ArticleInput]
@@ -73,7 +75,8 @@ def predict_and_store(request: InferenceRequest):
             "content": article.content,
             "category": article.category,
             "author": article.author,
-            "custom_id": str(article_id)  # 문자열로 저장
+            "custom_id": str(article_id),  # 문자열로 저장
+            "publication_date": article.publication_date
         })
 
     embeddings = [] # 임베딩을 저장할 리스트
