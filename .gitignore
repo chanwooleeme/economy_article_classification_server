@@ -54,3 +54,5 @@ src/utils/.env
 .coverage
 htmlcov/
 .pytest_cache/ 
+/model
+/logs
