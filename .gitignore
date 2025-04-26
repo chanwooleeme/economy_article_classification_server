@@ -38,6 +38,8 @@ ENV/
 .env
 .env.local
 src/utils/.env
+.envrc
+app/.envrc
 
 # Logs
 *.log
@@ -56,3 +58,4 @@ htmlcov/
 .pytest_cache/ 
 /model
 /logs
+/data
