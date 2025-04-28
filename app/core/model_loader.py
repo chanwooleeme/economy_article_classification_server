@@ -16,6 +16,21 @@ _model = None
 # 벡터 검색 관련 변수
 _qdrant_client = None
 
+# 더미 모델 클래스 추가
+class DummyModel:
+    """테스트용 더미 모델"""
+    def __init__(self):
+        self.num_labels = 2
+        
+    def eval(self):
+        return self
+        
+    def __call__(self, input_ids=None, attention_mask=None, **kwargs):
+        batch_size = len(input_ids) if input_ids is not None else 1
+        return type('obj', (object,), {
+            'logits': torch.tensor([[0.1, 0.9]] * batch_size)  # 항상 긍정적 예측
+        })
+
 class ResourcePool:
     def __init__(self, resource_factory, model_path: str, pool_size: int = 4):
         self.pool = Queue()
@@ -59,22 +74,7 @@ def load_tokenizer(model_path: str) -> PreTrainedTokenizer:
         except Exception as e2:
             logger.error(f"Failed to load tokenizer with alternative path: {str(e2)}")
             
-            # 마지막으로 절대 경로에서 상대 경로로 변환 시도
-            if model_path.startswith('/app/'):
-                try:
-                    relative_path = model_path[5:]  # '/app/' 제거
-                    logger.info(f"Trying with relative path: {relative_path}")
-                    return AutoTokenizer.from_pretrained(relative_path, local_files_only=True)
-                except Exception as e3:
-                    logger.error(f"All tokenizer loading attempts failed: {str(e3)}")
-                    
-                    # 마지막 대안: 테스트 모드 확인 후 더미 토크나이저 반환
-                    logger.warning("Fallback to dummy tokenizer")
-                    return DummyTokenizer()
-            
-            # 마지막 대안: 더미 토크나이저 반환
-            logger.warning("Fallback to dummy tokenizer")
-            return DummyTokenizer()
+
 
 class TokenizerPool(ResourcePool):
     def __init__(self, model_path: str, pool_size: int = 4):
