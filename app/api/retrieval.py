@@ -12,14 +12,14 @@ def recent_articles(top_k: int = Query(default=10, gt=0, le=100)):
     return BaseResponseModel(results=results, count=len(results))
 
 @router.get("/search-articles", response_model=BaseResponseModel[ArticleResponse])
-def search_articles_by_keywords():
-    results = [ArticleResponse(id=a['id'], content=a['content']) for a in retrieve_articles_by_keywords()]
+def search_articles_by_keywords(time_range_sec: int = Query(default=0, gt=0), top_k: int = Query(default=10, gt=0, le=100)):
+    results = [ArticleResponse(id=a['id'], content=a['content']) for a in retrieve_articles_by_keywords(time_range_sec, top_k)]
     return BaseResponseModel(results=results, count=len(results))
 
 @router.post("/update-article-importance")
 def update_importance(request: UpdateArticleImportanceRequest):
     result = update_article_importance(request.point_id, request.importance)
     if result:
-        return True
+        return BaseResponseModel(success=True)
     else:
-        return False
+        return BaseResponseModel(success=False)

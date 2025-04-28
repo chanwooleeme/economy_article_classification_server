@@ -69,16 +69,30 @@ def query_recent_articles(collection_name: str, top_k: int = 10) -> List[Article
         category=p.payload['category']) for p in points]
 
     
-def retrieve_articles_by_keywords():
+def retrieve_articles_by_keywords(time_range_sec: int = 0, top_k: int = 10):
     embeddings = get_embeddings(ECON_KEYWORDS)
     qdrant_client = get_qdrant_client()
+    if time_range_sec > 0:
+        now_ts = time.time()
+        last_time_range = now_ts - time_range_sec
+        time_filter = Filter(
+            must=[
+                FieldCondition(
+                    key="publication_date",
+                    range=Range(gte=last_time_range)
+                )
+            ]
+        )
+    else:
+        time_filter = None
     search_results = []
     for vector in embeddings:
         results = qdrant_client.query_points(
             collection_name=COLLECTION_NAME,
             query=vector,
-            limit=20,
-            with_payload=True
+            limit=top_k,
+            with_payload=True,
+            query_filter=time_filter
         )
         search_results.extend(results)
     article_dict = dict()
