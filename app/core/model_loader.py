@@ -119,6 +119,7 @@ def init_model(model_path: str):
             logger.warning(f"Error loading model: {str(e)}")
             
             # 대체 경로 시도 - 절대 경로가 아닌 경우
+            alt_path = model_path
             if not model_path.startswith('/'):
                 alt_path = os.path.join('/app', model_path)
                 
